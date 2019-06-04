@@ -19,9 +19,9 @@ fitControl <- trainControl(method = "repeatedcv",
                            classProbs = TRUE,
                            summaryFunction = twoClassSummary)
 
-set.seed(1)
-
 # We fit a logistic regression, a support vector machine and a decision tree model. 
+
+set.seed(1)
 
 logreg <- train(target ~ .,
             data = df, 
@@ -30,6 +30,8 @@ logreg <- train(target ~ .,
             trControl = fitControl,
             metric = "ROC")
 
+set.seed(1)
+
 svm <- train(target ~ .,
              data = df, 
              method = "svmRadial",
@@ -37,6 +39,8 @@ svm <- train(target ~ .,
              trControl = fitControl,
              tuneLength = 10,
              metric = "ROC")
+
+set.seed(1)
 
 tree <- train(target ~ .,
              data = df, 
