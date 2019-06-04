@@ -7,23 +7,25 @@ require(factoextra)
 # Currently using the Heart Disease UCI (https://archive.ics.uci.edu/ml/datasets/Heart+Disease) as a standin
 
 df <- read.csv("data/heart.csv")
-df <- subset(df, select = -target)
+
+df_train <- subset(df, select = -target)
 
 # Preprocess
 
-preProcess <- preProcess(df, method = c("range"))
-df <- predict(preProcess, df)
+preProcess <- preProcess(df_train, method = c("range"))
+df_train <- predict(preProcess, df)
 
 # Identify EPS (minimal points is default at 4)
 
-kNNdistplot(df)
+kNNdistplot(df_train)
+abline(h = 0.9)
 
 # HDBSCAN
 
-db <- dbscan(df, eps = 0.8, minPts = 4)
+db <- dbscan(df_train, eps = 0.9, minPts = 4)
 db
 
-fviz_cluster(db, df, geom="point")
+fviz_cluster(db, df_train, geom="point")
 
 # Identify nr clusters
 
@@ -40,4 +42,12 @@ set.seed(1)
 km <- kmeans(df, 4, nstart = 1)
 km
 
-fviz_cluster(km, df, geom="point")
+fviz_cluster(km, df)
+
+# Evaluate relationship between cluster and target
+
+df$dbscan_cluster <- db$cluster
+df$km_cluster <- km$cluster
+
+plot(target ~ dbscan_cluster, data=df)
+plot(target ~ km_cluster, data=df)
