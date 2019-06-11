@@ -9,6 +9,17 @@ df$target[df$target == 1] <- "yes"
 df$target[df$target == 0] <- "no"
 df$target <- factor(df$target, levels = c("yes", "no"))
 
+# I reserve 10% of dataset for out of sample test
+
+split <- createDataPartition(df$target, p = 0.9, list=FALSE)
+
+df_train <- df[split,]
+df_test <- df[-split,]
+
+#Variable selection + sensitivity analyses via bootstrap
+
+
+
 # Fitting models
 # Note: CV is done in a single step and are defined in fitControl. 
 # Here I selected 3 repeats of 5-fold cross-validation and ROC for evaluation.
@@ -24,7 +35,7 @@ fitControl <- trainControl(method = "repeatedcv",
 set.seed(1)
 
 logreg <- train(target ~ .,
-            data = df, 
+            data = df_train, 
             method = "glm",
             preProc = "range",
             trControl = fitControl,
@@ -33,7 +44,7 @@ logreg <- train(target ~ .,
 set.seed(1)
 
 svm <- train(target ~ .,
-             data = df, 
+             data = df_train, 
              method = "svmRadial",
              preProc = "range",
              trControl = fitControl,
@@ -43,19 +54,33 @@ svm <- train(target ~ .,
 set.seed(1)
 
 tree <- train(target ~ .,
-             data = df, 
+             data = df_train, 
              method = "rpart",
              preProc = "range",
              trControl = fitControl,
              tuneLength = 10,
              metric = "ROC")
 
+# Confusion matrix for each model
+
+confusionMatrix(data = predict(logreg, df_test), 
+                reference = df_test$target, 
+                positive = "yes")
+
+confusionMatrix(data = predict(svm, df_test), 
+                reference = df_test$target, 
+                positive = "yes")
+
+confusionMatrix(data = predict(tree, df_test), 
+                reference = df_test$target, 
+                positive = "yes")
+
+# The results are then printed and graphed (I chose ROC as the key metric)
+
 
 results = resamples(list(LR = logreg,
                          SVM = svm,
                          CT = tree))
-
-# The results are then printed and graphed (I chose ROC as the key metric)
 
 summary(results)
 
